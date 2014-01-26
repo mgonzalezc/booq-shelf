@@ -1,7 +1,11 @@
 package com.example.bqshelf;
 
+import java.util.ArrayList;
+
 import com.dropbox.client2.DropboxAPI;
+import com.dropbox.client2.DropboxAPI.Entry;
 import com.dropbox.client2.android.AndroidAuthSession;
+import com.dropbox.client2.exception.DropboxException;
 import com.dropbox.client2.session.AccessTokenPair;
 import com.dropbox.client2.session.AppKeyPair;
 import com.dropbox.client2.session.TokenPair;
@@ -15,7 +19,9 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.View;
 import android.view.View.OnClickListener;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.ListView;
 import android.widget.Toast;
 
 public class BqShelf extends Activity {
@@ -29,8 +35,13 @@ public class BqShelf extends Activity {
     final static private String ACCESS_KEY_NAME = "ACCESS_KEY";
     final static private String ACCESS_SECRET_NAME = "ACCESS_SECRET";
 	
-	DropboxAPI<AndroidAuthSession> mDBApi;
-	private Button bLogin;
+    private DropboxAPI<AndroidAuthSession> mDBApi;
+    private ArrayAdapter<Epub> adapter;
+    
+    private Button bLogin;
+    private ListView lView;
+    
+	private ArrayList<Epub> epubList;
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -39,7 +50,7 @@ public class BqShelf extends Activity {
 		
 		AndroidAuthSession session = buildSession();
 		mDBApi = new DropboxAPI<AndroidAuthSession>(session);
-		bLogin = (Button)findViewById(R.id.but_login);
+		bLogin = (Button)findViewById(R.id.butLogin);
 		
 		bLogin.setOnClickListener(new OnClickListener() {
             public void onClick(View v) {
@@ -146,11 +157,59 @@ public class BqShelf extends Activity {
 	  */
 	 private void setLoggedIn(boolean loggedIn) {
 	    	if (loggedIn) {
-	    		Log.i(TAG, "AUTENTICADO?? " + loggedIn);
-	    		bLogin.setVisibility(View.GONE);    		
-	    	} else {
-
+	    		bLogin.setVisibility(View.GONE);  
+	    		bLogin.setVisibility(View.GONE);
+	    		lView = (ListView)findViewById(R.id.listView);
+	    		
+	    		ArrayList<String> folderList=new ArrayList<String>();
+	    		epubList=new ArrayList<Epub>();
+	    			
+	    		epubList = getEpub("/");
+	    				
+	    		adapter = new ArrayAdapter<Epub>(BqShelf.this, R.layout.lista, R.id.textViewFile, epubList);
+	    		lView.setAdapter(adapter);
 	    	}
+	 }
+	 
+	 /**
+	  * Averigua la extensión de un archivo
+	  * @param file el nombre del archivo
+	  * @return extensión del archivo
+	  */
+	 public String getExtension(String file) {
+		 String extFile = "";
+		 int index = file.lastIndexOf('.');
+		 if (index != -1) {
+			 extFile = file.substring(index+1); 
+		 }
+		 
+		 return extFile;
+	 }
+	 
+
+	 /**
+	  * Obtiene de Dropbox los archivos del directorio indicado. Los archivos con extensión .epub se almacenan 
+	  * en una lista de objetos Epub.
+	  * @param path directorio
+	  * @return lista de Epub
+	  */
+	 public ArrayList<Epub> getEpub(String path) { 
+		try {	    		
+			ArrayList<Epub> epubList=new ArrayList<Epub>();
+ 			Entry entries = mDBApi.metadata(path, 1000, null, true, null);	
+ 			for (Entry e : entries.contents) {
+ 				String extFile = getExtension(e.fileName());
+ 				if (extFile.equals("epub")){
+ 					Epub epub = new Epub (e.fileName(), e.clientMtime);
+ 					epubList.add(epub);
+ 				} 
+ 			}
+ 			
+ 			return epubList;
+ 		} catch (DropboxException e) {
+ 			Log.i(TAG, "Error Listing", e);
+ 		}	
+		return null;	 
 	 }
 
 
