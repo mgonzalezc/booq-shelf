@@ -37,7 +37,7 @@ public class BqShelf extends Activity {
     final static private String ACCESS_SECRET_NAME = "ACCESS_SECRET";
 	
     private DropboxAPI<AndroidAuthSession> mDBApi;
-    private ArrayAdapter<Epub> adapter;
+    private CustomArrayAdapter adapter;
     
     private Button bLogin;
     private ListView lView;
@@ -69,8 +69,9 @@ public class BqShelf extends Activity {
 		return true;
 	}
 	
-
-	
+	/**
+	 * Opciones del menú
+	 */
 	public boolean onOptionsItemSelected (MenuItem item) {
 		switch (item.getItemId()) {
 			case R.id.optNombre:
@@ -179,12 +180,11 @@ public class BqShelf extends Activity {
 	    		bLogin.setVisibility(View.GONE);
 	    		lView = (ListView)findViewById(R.id.listView);
 	    		
-	    		ArrayList<String> folderList=new ArrayList<String>();
 	    		epubList=new ArrayList<Epub>();
 	    			
 	    		epubList = getEpub("/");
 	    				
-	    		adapter = new ArrayAdapter<Epub>(BqShelf.this, R.layout.lista, R.id.textViewFile, epubList);
+	    		adapter = new CustomArrayAdapter(BqShelf.this, R.layout.lista, R.id.textViewFile, epubList);
 	    		lView.setAdapter(adapter);
 	    	}
 	 }
@@ -230,6 +230,9 @@ public class BqShelf extends Activity {
 		return null;	 
 	 }
 	 
+	 /**
+	  * Ordena alfabéticamente
+	  */
 	 public void ordenaNombre() { 
 		 for(int i=0;i<epubList.size();i++) {
 			 for(int j=i+1;j<epubList.size()-1;j++) {				
@@ -242,6 +245,9 @@ public class BqShelf extends Activity {
 		 } 
 	 }
 	 
+	 /**
+	  * Ordena por fecha, de más antiguo a más reciente
+	  */
 	 public void ordenaFecha() {	
 		 for (int i=0; i<epubList.size(); i++) {
 			 for (int j=i+1; j<epubList.size()-1; j++) {
