@@ -4,5 +4,7 @@
     <string name="app_name">BqShelf</string>
     <string name="action_settings">Settings</string>
     <string name="login">Login con Dropbox</string>
+    <string name="opcion_nombre">Ordenar por nombre</string>
+    <string name="opcion_fecha">Ordenar por fecha</string>
 
 </resources>

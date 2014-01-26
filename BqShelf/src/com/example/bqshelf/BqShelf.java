@@ -17,6 +17,7 @@ import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
 import android.util.Log;
 import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.ArrayAdapter;
@@ -66,6 +67,23 @@ public class BqShelf extends Activity {
 		// Inflate the menu; this adds items to the action bar if it is present.
 		getMenuInflater().inflate(R.menu.bq_shelf, menu);
 		return true;
+	}
+	
+
+	
+	public boolean onOptionsItemSelected (MenuItem item) {
+		switch (item.getItemId()) {
+			case R.id.optNombre:
+				ordenaNombre();
+				adapter.notifyDataSetChanged();
+				return true;
+			case R.id.optFecha:
+				ordenaFecha();
+				adapter.notifyDataSetChanged();
+				return true;
+			default:
+				return super.onOptionsItemSelected(item);
+		}		
 	}
 	
 	
@@ -211,6 +229,30 @@ public class BqShelf extends Activity {
  		}	
 		return null;	 
 	 }
+	 
+	 public void ordenaNombre() { 
+		 for(int i=0;i<epubList.size();i++) {
+			 for(int j=i+1;j<epubList.size()-1;j++) {				
+				 if(epubList.get(i).getNombre().compareTo(epubList.get(j).getNombre())>0) {
+					 Epub auxiliar=epubList.get(i);
+			 		 epubList.set(i, epubList.get(j));
+			 		 epubList.set(j, auxiliar); 
+				 }
+		 	}
+		 } 
+	 }
+	 
+	 public void ordenaFecha() {	
+		 for (int i=0; i<epubList.size(); i++) {
+			 for (int j=i+1; j<epubList.size()-1; j++) {
+				 if (epubList.get(i).getFecha().after(epubList.get(j).getFecha())) {
+					 Epub auxiliar = epubList.get(i);
+					 epubList.set(i, epubList.get(j));
+					 epubList.set(j, auxiliar);
+				 }
+			 }
+		 }
+	 } 
 
 
 

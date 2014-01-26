@@ -1,9 +1,15 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android" >
 
     <item
-        android:id="@+id/action_settings"
-        android:orderInCategory="100"
+        android:id="@+id/optNombre"
+        android:orderInCategory="1"
         android:showAsAction="never"
-        android:title="@string/action_settings"/>
+        android:title="@string/opcion_nombre"/>
+    
+     <item
+        android:id="@+id/optFecha"
+        android:orderInCategory="1"
+        android:showAsAction="never"
+        android:title="@string/opcion_fecha"/>
 
 </menu>
