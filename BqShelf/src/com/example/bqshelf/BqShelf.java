@@ -20,7 +20,6 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
-import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ListView;
 import android.widget.Toast;
@@ -37,12 +36,12 @@ public class BqShelf extends Activity {
     final static private String ACCESS_SECRET_NAME = "ACCESS_SECRET";
 	
     private DropboxAPI<AndroidAuthSession> mDBApi;
-    private CustomArrayAdapter adapter;
+    private CustomArrayAdapter mAdapter;
     
-    private Button bLogin;
-    private ListView lView;
+    private Button mLogin;
+    private ListView mList;
     
-	private ArrayList<Epub> epubList;
+	private ArrayList<Epub> mEpubList;
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -51,9 +50,9 @@ public class BqShelf extends Activity {
 		
 		AndroidAuthSession session = buildSession();
 		mDBApi = new DropboxAPI<AndroidAuthSession>(session);
-		bLogin = (Button)findViewById(R.id.butLogin);
+		mLogin = (Button)findViewById(R.id.butLogin);
 		
-		bLogin.setOnClickListener(new OnClickListener() {
+		mLogin.setOnClickListener(new OnClickListener() {
             public void onClick(View v) {
             	mDBApi.getSession().startAuthentication(BqShelf.this);
             }    
@@ -76,11 +75,11 @@ public class BqShelf extends Activity {
 		switch (item.getItemId()) {
 			case R.id.optNombre:
 				ordenaNombre();
-				adapter.notifyDataSetChanged();
+				mAdapter.notifyDataSetChanged();
 				return true;
 			case R.id.optFecha:
 				ordenaFecha();
-				adapter.notifyDataSetChanged();
+				mAdapter.notifyDataSetChanged();
 				return true;
 			default:
 				return super.onOptionsItemSelected(item);
@@ -176,16 +175,15 @@ public class BqShelf extends Activity {
 	  */
 	 private void setLoggedIn(boolean loggedIn) {
 	    	if (loggedIn) {
-	    		bLogin.setVisibility(View.GONE);  
-	    		bLogin.setVisibility(View.GONE);
-	    		lView = (ListView)findViewById(R.id.listView);
+	    		mLogin.setVisibility(View.GONE);  
+	    		mLogin.setVisibility(View.GONE);
+	    		mList = (ListView)findViewById(R.id.listView);
 	    		
-	    		epubList=new ArrayList<Epub>();
-	    			
-	    		epubList = getEpub("/");
+	    		mEpubList=new ArrayList<Epub>();	    			
+	    		mEpubList = getEpub("/");
 	    				
-	    		adapter = new CustomArrayAdapter(BqShelf.this, R.layout.lista, R.id.textViewFile, epubList);
-	    		lView.setAdapter(adapter);
+	    		mAdapter = new CustomArrayAdapter(BqShelf.this, R.layout.lista, R.id.textViewFile, mEpubList, mDBApi);
+	    		mList.setAdapter(mAdapter);
 	    	}
 	 }
 	 
@@ -213,17 +211,17 @@ public class BqShelf extends Activity {
 	  */
 	 public ArrayList<Epub> getEpub(String path) { 
 		try {	    		
-			ArrayList<Epub> epubList=new ArrayList<Epub>();
+			ArrayList<Epub> mEpubList=new ArrayList<Epub>();
  			Entry entries = mDBApi.metadata(path, 1000, null, true, null);	
  			for (Entry e : entries.contents) {
  				String extFile = getExtension(e.fileName());
  				if (extFile.equals("epub")){
  					Epub epub = new Epub (e.fileName(), e.clientMtime);
- 					epubList.add(epub);
+ 					mEpubList.add(epub);
  				} 
  			}
  			
- 			return epubList;
+ 			return mEpubList;
  		} catch (DropboxException e) {
  			Log.i(TAG, "Error Listing", e);
  		}	
@@ -234,12 +232,12 @@ public class BqShelf extends Activity {
 	  * Ordena alfabéticamente
 	  */
 	 public void ordenaNombre() { 
-		 for(int i=0;i<epubList.size();i++) {
-			 for(int j=i+1;j<epubList.size()-1;j++) {				
-				 if(epubList.get(i).getNombre().compareTo(epubList.get(j).getNombre())>0) {
-					 Epub auxiliar=epubList.get(i);
-			 		 epubList.set(i, epubList.get(j));
-			 		 epubList.set(j, auxiliar); 
+		 for(int i=0;i<mEpubList.size();i++) {
+			 for(int j=i+1;j<mEpubList.size()-1;j++) {				
+				 if(mEpubList.get(i).getNombre().compareTo(mEpubList.get(j).getNombre())>0) {
+					 Epub auxiliar=mEpubList.get(i);
+			 		 mEpubList.set(i, mEpubList.get(j));
+			 		 mEpubList.set(j, auxiliar); 
 				 }
 		 	}
 		 } 
@@ -249,17 +247,14 @@ public class BqShelf extends Activity {
 	  * Ordena por fecha, de más antiguo a más reciente
 	  */
 	 public void ordenaFecha() {	
-		 for (int i=0; i<epubList.size(); i++) {
-			 for (int j=i+1; j<epubList.size()-1; j++) {
-				 if (epubList.get(i).getFecha().after(epubList.get(j).getFecha())) {
-					 Epub auxiliar = epubList.get(i);
-					 epubList.set(i, epubList.get(j));
-					 epubList.set(j, auxiliar);
+		 for (int i=0; i<mEpubList.size(); i++) {
+			 for (int j=i+1; j<mEpubList.size()-1; j++) {
+				 if (mEpubList.get(i).getFecha().after(mEpubList.get(j).getFecha())) {
+					 Epub auxiliar = mEpubList.get(i);
+					 mEpubList.set(i, mEpubList.get(j));
+					 mEpubList.set(j, auxiliar);
 				 }
 			 }
 		 }
 	 } 
-
-
-
 }

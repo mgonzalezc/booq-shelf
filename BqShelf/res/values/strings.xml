@@ -6,5 +6,7 @@
     <string name="login">Login con Dropbox</string>
     <string name="opcion_nombre">Ordenar por nombre</string>
     <string name="opcion_fecha">Ordenar por fecha</string>
+    <string name="title_activity_bq_shelf_epub">BqShelfEpub</string>
+   
 
 </resources>
