@@ -24,6 +24,11 @@ import android.widget.Button;
 import android.widget.ListView;
 import android.widget.Toast;
 
+/**
+ * Clase principal de la aplicación
+ * @author MarinaG
+ *
+ */
 public class BqShelf extends Activity {
 	private static final String TAG = "BqAccess";
 
