@@ -15,6 +15,7 @@ import android.os.Environment;
 import android.os.Handler;
 import android.os.Message;
 import android.app.Activity;
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.util.Log;
@@ -36,11 +37,12 @@ public class CustomArrayAdapter extends ArrayAdapter<Epub> {
 	private final String TAG = "CustomArrayAdapter";
 	private final int DOUBLE_CLICK_INTERVAL= ViewConfiguration.getDoubleTapTimeout();
 
+	private ProgressDialog mProgress;	
+	private DropboxAPI<AndroidAuthSession> mDBApi;
+	
 	private ImageView mImageView;
 	private long mLastPressTime;
 	private String mCachePath;
-	
-	private DropboxAPI<AndroidAuthSession> mDBApi;
 
 	/**
 	 * Constructor
@@ -53,7 +55,7 @@ public class CustomArrayAdapter extends ArrayAdapter<Epub> {
 	public CustomArrayAdapter(Context context, int resource,
 			int textViewResourceId, ArrayList<Epub> objects, DropboxAPI<AndroidAuthSession> mDBApi) {
 		super(context, resource, textViewResourceId, objects);
-		this.mDBApi= mDBApi;
+		this.mDBApi= mDBApi;	
 	}
 	
 	/**
@@ -63,24 +65,31 @@ public class CustomArrayAdapter extends ArrayAdapter<Epub> {
 	public View getView(final int position, View convertView, ViewGroup parent) {
 		View row=super.getView(position, convertView, parent);
 		
-		
 		mImageView=(ImageView)row.findViewById(R.id.imageBook);
-		
 		mImageView.setOnClickListener(new OnClickListener() {
             public void onClick(View v) {
             	long pressTime = System.currentTimeMillis();
                
                 if (pressTime - mLastPressTime <= DOUBLE_CLICK_INTERVAL) {
-                	//Ha habido doble click, realizamos las acciones
-                	Log.i(TAG, "Double click");
-                	
+                	//Ha habido doble click, realizamos las acciones                	
+                    mProgress = ProgressDialog.show(v.getContext(), "BqShelf", "Opening Epub", false, true);                 
                 	String nombre = getItem (position).getNombre();
                 	downloadEpub(v.getContext(), nombre); //descargamos el epub
                 	Intent i = new Intent(v.getContext(), BqShelfEpub.class);
                 	i.putExtra("nombre", nombre); //Guardamos el nombre del epub
                 	i.putExtra("path", mCachePath); //Guardamos el path donde se ha almacenado el epub
-                	v.getContext().startActivity(i); //Iniciamos la actividad
-         	
+                	         
+                	//Creo una thread para cerrar el progress dialog.
+                	Thread mThread = new Thread() {
+                		@Override
+                	    public void run() {
+                			mProgress.dismiss();
+                	    }
+                	};
+                	
+                	mThread.start();
+                	v.getContext().startActivity(i); //Iniciamos la actividad 
+                	   
                 } else {  
                     Handler myHandler = new Handler();
                     Message m = new Message();
@@ -102,24 +111,27 @@ public class CustomArrayAdapter extends ArrayAdapter<Epub> {
 	 * @param nombre
 	 */
 	public void downloadEpub (Context context, String nombre) {		
-		FileOutputStream fos = null;
-
-        try {       	
-        	File file = new File (context.getCacheDir(), nombre);
-        	mCachePath=file.getPath();
-        	fos = new FileOutputStream(file);
-        	DropboxFileInfo info = mDBApi.getFile("/"+nombre, null, fos, null);
-        	Log.i("DbExampleLog", "The file's rev is: " + info.getMetadata().rev);
-        } catch (Exception e) {
-        	Log.i(TAG, "Error downloading" + e);
-        }  finally {
-            if (fos != null) {
-                try {
-                    fos.close();
-                } catch (IOException e) {
-                	Log.i(TAG, "Error closing fos" + e);
-                }
-            }
-        }          
+		FileOutputStream fos = null;  	
+		File file = new File (context.getCacheDir(), nombre);
+    	mCachePath=file.getPath(); //guardamos el path
+    	
+    	//Si el fichero no existe, va a dropbox y lo descarga, pero si esta en la caché, no hace falta
+    	if (!file.exists()) {
+	        try {       	     	
+	        	fos = new FileOutputStream(file);
+	        	DropboxFileInfo info = mDBApi.getFile("/"+nombre, null, fos, null);
+	        	Log.i("DbExampleLog", "The file's rev is: " + info.getMetadata().rev);
+	        } catch (Exception e) {
+	        	Log.i(TAG, "Error downloading" + e);
+	        }  finally {
+	            if (fos != null) {
+	                try {
+	                    fos.close();
+	                } catch (IOException e) {
+	                	Log.i(TAG, "Error closing fos" + e);
+	                }
+	            }
+	        }          
+		}
 	}
 }
